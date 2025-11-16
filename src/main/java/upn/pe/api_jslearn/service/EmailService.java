@@ -12,7 +12,7 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
 
-    @Value("${spring.mail.username}")
+    @Value("${MAIL_FROM}")
     private String from;
 
     @Value("${app.base-url}")
@@ -44,17 +44,17 @@ public class EmailService {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-            helper.setFrom(from);
+            helper.setFrom(from); // ← remitente real (MAIL_FROM)
             helper.setTo(to);
             helper.setSubject(subject);
-            helper.setText(html, true); // true = enviar como HTML
+            helper.setText(html, true); // true = HTML
 
             mailSender.send(message);
 
             System.out.println("Correo enviado correctamente a: " + to);
 
         } catch (Exception e) {
-            System.err.println("Error enviando correo: " + e.getMessage());
+            System.err.println("❌ Error enviando correo: " + e.getMessage());
         }
     }
 }
