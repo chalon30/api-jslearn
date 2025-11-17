@@ -1,4 +1,4 @@
-USE devschool_db;
+USE railway;
 
 INSERT INTO curso (id, titulo, descripcion, imagen_url, activo)
 VALUES 
