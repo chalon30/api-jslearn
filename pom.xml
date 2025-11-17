@@ -123,9 +123,14 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<version>3.5.6</version>
+				<configuration>
+					<mainClass>upn.pe.api_jslearn.ApiJslearnApplication</mainClass>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
+
 
 	<!-- PERFIL PARA RAILWAY (IMPORTANTE) -->
 	<profiles>
