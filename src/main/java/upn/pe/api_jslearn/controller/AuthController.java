@@ -30,30 +30,14 @@ public class AuthController {
         try {
             Usuario nuevoUsuario = authService.registrarUsuario(usuario);
 
-            // NO se genera token aquí; se envía correo de verificación
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(Map.of(
-                            "message", "Usuario registrado. Revisa tu correo para activar tu cuenta.",
+                            "message", "Usuario registrado correctamente.",
                             "correo", nuevoUsuario.getCorreo()
                     ));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("error", e.getMessage()));
-        }
-    }
-
-    // --- CONFIRMAR CUENTA ---
-    @GetMapping("/confirmar")
-    public ResponseEntity<?> confirmarCuenta(@RequestParam("token") String token) {
-        boolean ok = authService.confirmarCuenta(token);
-
-        if (ok) {
-            return ResponseEntity.ok(Map.of(
-                    "message", "Cuenta activada correctamente. Ya puedes iniciar sesión."
-            ));
-        } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "Token inválido o cuenta ya activada"));
         }
     }
 
@@ -77,7 +61,7 @@ public class AuthController {
             ));
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "Credenciales inválidas o cuenta no activada"));
+                    .body(Map.of("error", "Credenciales inválidas"));
         }
     }
 }
