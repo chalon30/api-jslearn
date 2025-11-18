@@ -27,16 +27,16 @@ public class DataLoader implements CommandLineRunner {
 
             // Verificar si la tabla existe
             try (ResultSet checkTable = conn.getMetaData()
-                    .getTables(null, null, "cursos", null)) {
+                    .getTables(null, null, "curso", null)) {
 
                 if (!checkTable.next()) {
-                    System.out.println("⚠️ La tabla 'cursos' no existe. Saltando ejecución de data.sql");
+                    System.out.println("⚠️ La tabla 'curso' no existe. Saltando ejecución de data.sql");
                     return;
                 }
             }
 
             // Verificar si la tabla está vacía
-            try (ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM cursos")) {
+            try (ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM curso")) {
 
                 if (rs.next() && rs.getInt(1) == 0) {
                     System.out.println("▶ Ejecutando data.sql (tabla vacía)...");
