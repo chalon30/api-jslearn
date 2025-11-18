@@ -9,17 +9,24 @@ public class ApiJslearnApplication {
 
 	public static void main(String[] args) {
 
-		// Cargar variables del .env.local
-		Dotenv dotenv = Dotenv.configure()
-				.filename(".env.local")
-				.load();
-				
-		System.setProperty("DB_HOST", dotenv.get("DB_HOST"));
-		System.setProperty("DB_PORT", dotenv.get("DB_PORT"));
-		System.setProperty("DB_NAME", dotenv.get("DB_NAME"));
-		System.setProperty("DB_USER", dotenv.get("DB_USER"));
-		System.setProperty("DB_PASSWORD", dotenv.get("DB_PASSWORD"));
+		String profile = System.getenv("SPRING_PROFILES_ACTIVE"); // o cualquier variable que identifique el entorno
+		Dotenv dotenv = null;
+
+		if ("local".equals(profile)) {
+			dotenv = Dotenv.configure()
+					.filename(".env.local")
+					.load();
+		}
+
+		if (dotenv != null) {
+			System.setProperty("DB_HOST", dotenv.get("DB_HOST"));
+			System.setProperty("DB_PORT", dotenv.get("DB_PORT"));
+			System.setProperty("DB_NAME", dotenv.get("DB_NAME"));
+			System.setProperty("DB_USER", dotenv.get("DB_USER"));
+			System.setProperty("DB_PASSWORD", dotenv.get("DB_PASSWORD"));
+		}
 
 		SpringApplication.run(ApiJslearnApplication.class, args);
 	}
+
 }
