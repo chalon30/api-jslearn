@@ -9,8 +9,11 @@ public class ApiJslearnApplication {
 
 	public static void main(String[] args) {
 
-		// Cargar variables del .env
-		Dotenv dotenv = Dotenv.load();
+		// Cargar variables del .env.local
+		Dotenv dotenv = Dotenv.configure()
+				.filename(".env.local")
+				.load();
+				
 		System.setProperty("DB_HOST", dotenv.get("DB_HOST"));
 		System.setProperty("DB_PORT", dotenv.get("DB_PORT"));
 		System.setProperty("DB_NAME", dotenv.get("DB_NAME"));
