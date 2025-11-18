@@ -33,6 +33,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                     "/api/auth/**",   // Login, registro
+                    "/api/usuarios/**", // Gestión de usuarios
                     "/api/cursos/**", // Cursos públicos
                     "/", "/index.html",
                     "/css/**",

@@ -34,6 +34,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         // 🔓 Rutas públicas sin token
         if (path.startsWith("/api/auth") ||
             path.startsWith("/api/cursos") || 
+            path.startsWith("/api/usuarios") ||
             path.equals("/") ||
             path.startsWith("/css") ||
             path.startsWith("/js")) {
