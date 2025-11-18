@@ -14,7 +14,8 @@ import java.util.Date;
 public class JwtUtil {
 
     // Clave secreta en Base64 (mínimo 256 bits)
-    private static final String SECRET_KEY = "bWljbGF2ZXNlY3JldGtleWZvcmpzbGVhcm5hcGkta2V5LXNhZmU=";
+    private static final String SECRET_KEY =
+            "bWljbGF2ZXNlY3JldGtleWZvcmpzbGVhcm5hcGkta2V5LXNhZmU=";
 
     private Key getSigningKey() {
         byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
@@ -31,7 +32,7 @@ public class JwtUtil {
                 .compact();
     }
 
-    // Extraer el correo (subject)
+    // Extraer correo del token
     public String extractCorreo(String token) {
         return extractAllClaims(token).getSubject();
     }
@@ -46,7 +47,7 @@ public class JwtUtil {
         }
     }
 
-    // Obtener claims (datos del token)
+    // Obtener todos los claims
     private Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())

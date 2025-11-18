@@ -6,6 +6,9 @@ import org.springframework.jdbc.datasource.init.ScriptUtils;
 import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.Statement;
+import java.sql.ResultSet;
 
 @Component
 public class DataLoader implements CommandLineRunner {
@@ -18,7 +21,35 @@ public class DataLoader implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        ScriptUtils.executeSqlScript(dataSource.getConnection(), new ClassPathResource("data.sql"));
-        System.out.println("data.sql ejecutado correctamente!");
+
+        try (Connection conn = dataSource.getConnection();
+             Statement stmt = conn.createStatement()) {
+
+            // Verificar si la tabla existe
+            try (ResultSet checkTable = conn.getMetaData()
+                    .getTables(null, null, "cursos", null)) {
+
+                if (!checkTable.next()) {
+                    System.out.println("⚠️ La tabla 'cursos' no existe. Saltando ejecución de data.sql");
+                    return;
+                }
+            }
+
+            // Verificar si la tabla está vacía
+            try (ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM cursos")) {
+
+                if (rs.next() && rs.getInt(1) == 0) {
+                    System.out.println("▶ Ejecutando data.sql (tabla vacía)...");
+                    ScriptUtils.executeSqlScript(conn, new ClassPathResource("data.sql"));
+                    System.out.println("✔ data.sql ejecutado correctamente.");
+                } else {
+                    System.out.println("⏩ Saltando data.sql (ya hay datos xd).");
+                }
+            }
+
+        } catch (Exception e) {
+            System.out.println("❌ Error en DataLoader: " + e.getMessage());
+            throw e;
+        }
     }
 }

@@ -24,7 +24,9 @@ public class AuthController {
         this.jwtUtil = jwtUtil;
     }
 
-    // --- REGISTRO ---
+    // ============================
+    // 📌 REGISTRO
+    // ============================
     @PostMapping("/register")
     public ResponseEntity<?> registrar(@RequestBody Usuario usuario) {
         try {
@@ -41,27 +43,36 @@ public class AuthController {
         }
     }
 
-    // --- LOGIN ---
+    // ============================
+    // 📌 LOGIN
+    // ============================
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Usuario credenciales) {
+
         Optional<Usuario> usuarioOpt = authService.login(
                 credenciales.getCorreo(),
                 credenciales.getPassword()
         );
 
-        if (usuarioOpt.isPresent()) {
-            Usuario usuario = usuarioOpt.get();
-            String token = jwtUtil.generateToken(usuario.getCorreo());
-
-            return ResponseEntity.ok(Map.of(
-                    "token", token,
-                    "correo", usuario.getCorreo(),
-                    "rol", usuario.getRol(),
-                    "esAdmin", usuario.isEsAdmin()
-            ));
-        } else {
+        if (usuarioOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "Credenciales inválidas"));
         }
+
+        Usuario usuario = usuarioOpt.get();
+
+        // Generar token
+        String token = jwtUtil.generateToken(usuario.getCorreo());
+
+        // Devolver datos completos del usuario
+        return ResponseEntity.ok(Map.of(
+                "token", token,
+                "id", usuario.getId(),
+                "nombre", usuario.getNombre(),
+                "apellidos", usuario.getApellidos(),
+                "correo", usuario.getCorreo(),
+                "rol", usuario.getRol(),
+                "esAdmin", usuario.isEsAdmin()
+        ));
     }
 }

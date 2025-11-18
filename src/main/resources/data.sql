@@ -1,4 +1,3 @@
-USE railway;
 
 INSERT INTO curso (id, titulo, descripcion, imagen_url, activo)
 VALUES 
@@ -134,3 +133,4 @@ VALUES
 (25, 'Objetos', 1, 1, 9),
 (26, 'Directorios', 0, 2, 9),
 (27, 'Imágenes', 0, 3, 9);
+

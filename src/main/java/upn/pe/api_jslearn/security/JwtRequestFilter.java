@@ -5,10 +5,13 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.lang.NonNull;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
 
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
@@ -28,26 +31,45 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
         String path = request.getRequestURI();
 
-        // 🔓 Evitar validar rutas públicas
-        if (path.startsWith("/api/auth") || path.equals("/") || path.startsWith("/css") || path.startsWith("/js")) {
+        // 🔓 Rutas públicas sin token
+        if (path.startsWith("/api/auth") ||
+            path.startsWith("/api/cursos") || 
+            path.equals("/") ||
+            path.startsWith("/css") ||
+            path.startsWith("/js")) {
+
             filterChain.doFilter(request, response);
             return;
         }
 
-        // 🔐 Verificar token solo si está presente
+        // 🔐 Leer encabezado Authorization
         String authHeader = request.getHeader("Authorization");
 
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String token = authHeader.substring(7);
-
-            if (!jwtUtil.isTokenValid(token)) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("Token inválido o expirado");
-                return;
-            }
+        // ❌ No hay token → Denegar acceso
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("Token requerido");
+            return;
         }
 
-        // Si no hay token o es válido → continuar
+        String token = authHeader.substring(7);
+
+        // ❌ Token inválido
+        if (!jwtUtil.isTokenValid(token)) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("Token inválido o expirado");
+            return;
+        }
+
+        // ✔ Extraer correo del token
+        String correo = jwtUtil.extractCorreo(token);
+
+        // ✔ Autenticar al usuario
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(correo, null, List.of());
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
         filterChain.doFilter(request, response);
     }
 }

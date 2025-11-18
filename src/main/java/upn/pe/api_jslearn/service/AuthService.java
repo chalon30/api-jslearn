@@ -1,5 +1,6 @@
 package upn.pe.api_jslearn.service;
 
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import upn.pe.api_jslearn.model.Usuario;
 import upn.pe.api_jslearn.repository.IUsuarioRepository;
@@ -10,9 +11,11 @@ import java.util.Optional;
 public class AuthService {
 
     private final IUsuarioRepository usuarioRepository;
+    private final BCryptPasswordEncoder passwordEncoder;
 
-    public AuthService(IUsuarioRepository usuarioRepository) {
+    public AuthService(IUsuarioRepository usuarioRepository, BCryptPasswordEncoder passwordEncoder) {
         this.usuarioRepository = usuarioRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     // --- Registro ---
@@ -31,27 +34,28 @@ public class AuthService {
             throw new RuntimeException("El correo ya está registrado");
         }
 
-        // Nuevo usuario
+        // Rol y admin
         if (usuarioRepository.count() == 0) {
             usuario.setEsAdmin(true);
             usuario.setRol("ADMIN");
         } else {
             usuario.setEsAdmin(false);
             if (usuario.getRol() == null || usuario.getRol().isBlank()) {
-                usuario.setRol("ESTUDIANTE"); // rol por defecto
+                usuario.setRol("ESTUDIANTE");
             }
         }
 
-        // Usuario activo directo
         usuario.setActivo(true);
-        usuario.setVerificationToken(null); // ya no hay token
+        usuario.setVerificationToken(null);
+
+        // Encriptar contraseña antes de guardar
+        usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
 
         return usuarioRepository.save(usuario);
     }
 
     // --- Confirmar cuenta ---
     public boolean confirmarCuenta(String token) {
-        // Ya no hay token, simplemente devolver true
         return true;
     }
 
@@ -67,8 +71,8 @@ public class AuthService {
         if (usuarioOpt.isPresent()) {
             Usuario usuario = usuarioOpt.get();
 
-            // Comparación simple (luego se puede cambiar a BCrypt)
-            if (usuario.getPassword().equals(password)) {
+            // Comparación con BCrypt
+            if (passwordEncoder.matches(password, usuario.getPassword())) {
                 return Optional.of(usuario);
             }
         }

@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -17,33 +18,32 @@ public class SecurityConfig {
         this.jwtRequestFilter = jwtRequestFilter;
     }
 
+    // Bean para encriptar contraseñas
+    @Bean
+    public BCryptPasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    // Configuración de seguridad
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // ❌ Desactiva CSRF (solo para APIs REST)
-            .csrf(csrf -> csrf.disable())
+            .csrf(csrf -> csrf.disable()) // Desactivar CSRF para API REST
 
-            // ✅ Definir rutas públicas y protegidas con la nueva API
             .authorizeHttpRequests(auth -> auth
-                // Rutas públicas (sin autenticación)
                 .requestMatchers(
-                    "/api/auth/**",
-                    "/api/cursos/**",
-                    "/",
-                    "/index.html",
+                    "/api/auth/**",   // Login, registro
+                    "/api/cursos/**", // Cursos públicos
+                    "/", "/index.html",
                     "/css/**",
-                    "/js/**",
-                    "/api/**"
+                    "/js/**"
                 ).permitAll()
 
-                // Todas las demás requieren autenticación
-                .anyRequest().authenticated()
+                .anyRequest().authenticated() // Todo lo demás protegido
             )
 
-            // Agrega el filtro JWT antes del filtro de autenticación por defecto
             .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 }
-
