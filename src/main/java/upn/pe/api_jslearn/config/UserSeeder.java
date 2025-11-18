@@ -16,15 +16,15 @@ public class UserSeeder implements CommandLineRunner {
     }
 
     @Override
-    public void run(String... args) throws Exception {
+    public void run(String... args) {
 
-        // Verificar si ya existen usuarios
-        if (usuarioRepository.count() > 0) {
-            System.out.println("Seed de usuario omitido: ya existen usuarios.");
+        // Crear usuario ADMIN solo si no existe
+        if (usuarioRepository.existsByCorreo("admin@devschool.com")) {
+            System.out.println("Usuario ADMIN ya existe, seed omitido.");
             return;
         }
 
-        System.out.println("No existen usuarios, creando usuario ADMIN por defecto...");
+        System.out.println("No existen usuarios ADMIN, creando uno por defecto...");
 
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
