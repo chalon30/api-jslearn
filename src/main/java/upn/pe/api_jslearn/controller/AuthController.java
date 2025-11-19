@@ -80,4 +80,43 @@ public class AuthController {
                     .body(Map.of("error", "Token inválido."));
         }
     }
+
+
+    @PostMapping("/admin-login")
+public ResponseEntity<?> adminLogin(@RequestBody Usuario credenciales) {
+
+    Optional<Usuario> usuarioOpt = authService.login(
+            credenciales.getCorreo(),
+            credenciales.getPassword()
+    );
+
+    if (usuarioOpt.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("error", "Credenciales inválidas o cuenta no confirmada"));
+    }
+
+    Usuario usuario = usuarioOpt.get();
+
+    String rol = usuario.getRol() != null ? usuario.getRol().toUpperCase() : "";
+
+    // 🔒 Solo ADMIN o PROFESOR pueden entrar aquí
+    if (!"ADMIN".equals(rol) && !"PROFESOR".equals(rol)) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(Map.of(
+                        "error", "Solo usuarios con rol ADMIN o PROFESOR pueden acceder a este panel"
+                ));
+    }
+
+    String token = jwtUtil.generateToken(usuario.getCorreo());
+
+    return ResponseEntity.ok(Map.of(
+            "token", token,
+            "id", usuario.getId(),
+            "nombre", usuario.getNombre(),
+            "apellidos", usuario.getApellidos(),
+            "correo", usuario.getCorreo(),
+            "rol", usuario.getRol(),
+            "esAdmin", usuario.isEsAdmin()
+    ));
+}
 }

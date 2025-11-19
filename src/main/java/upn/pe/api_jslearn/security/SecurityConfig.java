@@ -35,7 +35,8 @@ public class SecurityConfig {
                                 "/api/auth/**",
                                 "/api/usuarios/**",
                                 "/api/cursos/**",
-                                "/api/inscripciones/**", // rutas públicas
+                                "/api/inscripciones/**",
+                                "/api/progreso/**", 
                                 "/", "/index.html",
                                 "/css/**",
                                 "/js/**")

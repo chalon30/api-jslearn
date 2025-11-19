@@ -35,4 +35,12 @@ public class UsuarioService {
         return usuarioRepository.save(usuario);
     }
 
+    public Usuario actualizarRol(Long id, String nuevoRol) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        usuario.setRol(nuevoRol);
+        return usuarioRepository.save(usuario);
+    }
+
 }

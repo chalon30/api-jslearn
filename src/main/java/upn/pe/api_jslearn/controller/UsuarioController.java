@@ -86,4 +86,53 @@ public class UsuarioController {
         return ResponseEntity.ok("Contraseña actualizada correctamente");
     }
 
+    @PutMapping("/{id}/rol")
+    public ResponseEntity<?> actualizarRol(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> body) {
+        String nuevoRol = body.get("rol");
+
+        if (nuevoRol == null || nuevoRol.isBlank()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("El rol es obligatorio");
+        }
+
+        // Normaliza mayúsculas
+        nuevoRol = nuevoRol.toUpperCase();
+
+        // Solo se permiten ALUMNO y PROFESOR desde este endpoint
+        if (!nuevoRol.equals("ALUMNO") && !nuevoRol.equals("PROFESOR")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Solo se permite cambiar entre roles ALUMNO y PROFESOR");
+        }
+
+        Optional<Usuario> usuarioOpt = usuarioService.buscarPorId(id);
+        if (usuarioOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Usuario no encontrado");
+        }
+
+        Usuario usuario = usuarioOpt.get();
+
+        // No se puede tocar un ADMIN
+        if ("ADMIN".equalsIgnoreCase(usuario.getRol())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("No se puede modificar el rol de un usuario ADMIN");
+        }
+
+        // Tampoco permitir convertir a ADMIN desde aquí (por si acaso)
+        if ("ADMIN".equalsIgnoreCase(nuevoRol)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("No se puede asignar el rol ADMIN desde este endpoint");
+        }
+
+        // Hasta aquí ya sabemos que es ALUMNO o PROFESOR y el usuario no es ADMIN
+        usuario.setRol(nuevoRol);
+        usuarioService.guardarUsuario(usuario);
+
+        return ResponseEntity.ok(Map.of(
+                "mensaje", "Rol actualizado correctamente",
+                "rol", usuario.getRol()));
+    }
+
 }
