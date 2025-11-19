@@ -13,7 +13,7 @@ public class ApiJslearnApplication {
 	public static void main(String[] args) {
 
 		//para local
-		// Cargar siempre .env.local
+		//Cargar siempre .env.local
 		// io.github.cdimascio.dotenv.Dotenv dotenv = Dotenv.configure()
 		// 		.filename(".env.local")
 		// 		.load();

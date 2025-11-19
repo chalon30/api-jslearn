@@ -28,22 +28,22 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable()) // Desactivar CSRF para API REST
+                .csrf(csrf -> csrf.disable()) // Desactivar CSRF para API REST
 
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers(
-                    "/api/auth/**",   // Login, registro
-                    "/api/usuarios/**", // Gestión de usuarios
-                    "/api/cursos/**", // Cursos públicos
-                    "/", "/index.html",
-                    "/css/**",
-                    "/js/**"
-                ).permitAll()
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                "/api/auth/**",
+                                "/api/usuarios/**",
+                                "/api/cursos/**",
+                                "/api/inscripciones/**", // rutas públicas
+                                "/", "/index.html",
+                                "/css/**",
+                                "/js/**")
+                        .permitAll()
+                        .anyRequest().authenticated() // todo lo demás protegido
+                )
 
-                .anyRequest().authenticated() // Todo lo demás protegido
-            )
-
-            .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

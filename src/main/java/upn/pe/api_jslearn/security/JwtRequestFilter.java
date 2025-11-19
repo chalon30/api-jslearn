@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -35,6 +36,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         if (path.startsWith("/api/auth") ||
             path.startsWith("/api/cursos") || 
             path.startsWith("/api/usuarios") ||
+            path.startsWith("/api/inscripciones") ||
             path.equals("/") ||
             path.startsWith("/css") ||
             path.startsWith("/js")) {
@@ -67,7 +69,11 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
         // ✔ Autenticar al usuario
         UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(correo, null, List.of());
+        new UsernamePasswordAuthenticationToken(
+            correo,
+            null,
+            List.of(new SimpleGrantedAuthority("ROLE_USER")) // rol mínimo
+        );
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
