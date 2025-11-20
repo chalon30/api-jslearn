@@ -38,4 +38,9 @@ public class ProgresoCurso {
     private Leccion ultimaLeccion; // opcional
 
     private LocalDateTime fechaUltimaActividad;
+
+    // ✅ CORRECTO PARA BUILDER + VALOR POR DEFECTO
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean cursoCompletado = false;
 }

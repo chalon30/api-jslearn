@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import upn.pe.api_jslearn.dto.ProgresoCursoDTO;
+import upn.pe.api_jslearn.dto.PreguntaRespuestaDTO;
 import upn.pe.api_jslearn.model.*;
 import upn.pe.api_jslearn.repository.*;
 
@@ -19,11 +20,21 @@ public class ProgresoServiceImpl implements ProgresoService {
     private final ILeccionRepository leccionRepository;
     private final IProgresoLeccionRepository progresoLeccionRepository;
     private final IProgresoCursoRepository progresoCursoRepository;
-    private final IInscripcionCursoRepository inscripcionCursoRepository; // 👈 nuevo
+    private final IInscripcionCursoRepository inscripcionCursoRepository;
+    private final IRespuestaPreguntaRepository respuestaPreguntaRepository;
+
+    // 👇 necesitas también estos 2 repos si no los tienes aún
+    private final IPreguntaRepository preguntaRepository;
+    private final IOpcionRepository opcionRepository;
 
     @Override
     @Transactional
-    public ProgresoCursoDTO marcarLeccionCompletada(Long usuarioId, Long cursoId, Long leccionId) {
+    public ProgresoCursoDTO marcarLeccionCompletada(
+            Long usuarioId,
+            Long cursoId,
+            Long leccionId,
+            List<PreguntaRespuestaDTO> respuestas
+    ) {
 
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
@@ -42,6 +53,39 @@ public class ProgresoServiceImpl implements ProgresoService {
         inscripcionCursoRepository.findByUsuarioIdAndCursoId(usuarioId, cursoId)
                 .orElseThrow(() -> new RuntimeException("El usuario no está inscrito en este curso"));
 
+        // 📝 Guardar respuestas del usuario (si vienen en el request)
+        if (respuestas != null && !respuestas.isEmpty()) {
+
+            // opcional: limpiar respuestas anteriores si se rehace la lección
+            respuestaPreguntaRepository.deleteByUsuarioIdAndLeccionId(usuarioId, leccionId);
+
+            for (PreguntaRespuestaDTO r : respuestas) {
+                if (r == null || r.getPreguntaId() == null || r.getOpcionSeleccionadaId() == null) {
+                    continue;
+                }
+
+                Pregunta pregunta = preguntaRepository.findById(r.getPreguntaId())
+                        .orElseThrow(() -> new RuntimeException("Pregunta no encontrada"));
+
+                Opcion opcionSeleccionada = opcionRepository.findById(r.getOpcionSeleccionadaId())
+                        .orElseThrow(() -> new RuntimeException("Opción no encontrada"));
+
+                boolean esCorrecta = opcionSeleccionada.isCorrecta();
+
+                RespuestaPregunta respuesta = RespuestaPregunta.builder()
+                        .usuario(usuario)
+                        .leccion(leccion)
+                        .pregunta(pregunta)
+                        .opcionSeleccionada(opcionSeleccionada)
+                        .correcta(esCorrecta)
+                        .fechaRespuesta(LocalDateTime.now())
+                        .build();
+
+                respuestaPreguntaRepository.save(respuesta);
+            }
+        }
+
+        // progreso por lección
         ProgresoLeccion progresoLeccion = progresoLeccionRepository
                 .findByUsuarioIdAndLeccionId(usuarioId, leccionId)
                 .orElse(
@@ -56,6 +100,7 @@ public class ProgresoServiceImpl implements ProgresoService {
 
         progresoLeccionRepository.save(progresoLeccion);
 
+        // progreso global del curso (porcentaje)
         List<ProgresoLeccion> progresosDelCurso = progresoLeccionRepository
                 .findByUsuarioIdAndLeccion_Modulo_Curso_Id(usuarioId, cursoId);
 
@@ -74,6 +119,7 @@ public class ProgresoServiceImpl implements ProgresoService {
 
         boolean cursoCompletado = (totalLecciones > 0 && leccionesCompletadas == totalLecciones);
 
+        // progreso por curso
         ProgresoCurso progresoCurso = progresoCursoRepository
                 .findByUsuarioIdAndCursoId(usuarioId, cursoId)
                 .orElse(
@@ -86,6 +132,7 @@ public class ProgresoServiceImpl implements ProgresoService {
         progresoCurso.setPorcentaje(porcentaje);
         progresoCurso.setUltimaLeccion(leccion);
         progresoCurso.setFechaUltimaActividad(LocalDateTime.now());
+        progresoCurso.setCursoCompletado(cursoCompletado);
 
         progresoCursoRepository.save(progresoCurso);
 
